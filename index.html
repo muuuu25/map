@@ -102,6 +102,11 @@ fetch("honhyo_2024.csv")
     console.log(text.slice(0, 200)); // 先頭200文字だけ確認
   });
 
+    // 振動させる
+  if (navigator.vibrate) {
+    navigator.vibrate(300);
+  }
+}
 
 
     // ユーザー位置マーカー
