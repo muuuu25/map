@@ -102,12 +102,6 @@ fetch("honhyo_2024.csv")
     console.log(text.slice(0, 200)); // 先頭200文字だけ確認
   });
 
-    // 振動させる
-  if (navigator.vibrate) {
-    navigator.vibrate(300);
-  }
-}
-
 
     // ユーザー位置マーカー
     let userMarker = L.marker([0,0]).addTo(map);
@@ -137,7 +131,12 @@ fetch("honhyo_2024.csv")
         warningDiv.style.display = 'block';
         warningDiv.classList.add('blink');
       }
-
+　//振動
+        if (navigator.vibrate) {
+    navigator.vibrate([200, 100, 200]);
+  }
+}
+                                        
       // 出たら警告非表示
       if (newInsideIndex === null) {
         warningDiv.style.display = 'none';
