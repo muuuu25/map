@@ -39,6 +39,7 @@
 
 <button onclick="startApp()">スタート</button>
 <button onclick="navigator.vibrate(1000)">テスト振動</button>
+<button onclick="test()">テスト</button>
 
 <h2>自転車事故防止アプリ</h2>
 
@@ -106,7 +107,10 @@ let userMarker = L.marker([0,0]).addTo(map);
 const warningDiv = document.getElementById("warning");
 
 let insideZone = false;
-
+  
+function test() {
+  alert("動いてる");
+}
 // スタート
 function startApp() {
 
