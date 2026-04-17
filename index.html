@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
-  <button onclick="startApp()">スタート</button>
 <head>
   <meta charset="utf-8" />
   <title>自転車事故防止アプリ</title>
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
   <style>
     #map { height: 800px; }
 
-    /* 警告バナー */
     #warning {
       display: none;
       position: fixed;
@@ -26,7 +26,6 @@
       z-index: 1000;
     }
 
-    /* 点滅アニメーション */
     .blink {
       animation: blinkAnimation 1s infinite;
     }
@@ -37,23 +36,46 @@
     }
   </style>
 </head>
+
 <body>
-  <h2>自転車事故防止アプリ</h2>
-  <h3>hello world</h3>
-  <div id="map"></div>
-  <div id="warning">⚠ 危険区域に入りました！</div>
 
-  <script>
-    // 地図を表示
-    const map = L.map('map').setView([35.6872027, 139.8208808], 15);
+<button onclick="startApp()">スタート</button>
 
-    // タイルと横無限スクロール防止
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      noWrap: true,
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-    map.setMaxBounds([[-85, -180], [85, 180]]);
-    function startApp() {
+<h2>自転車事故防止アプリ</h2>
+<div id="map"></div>
+<div id="warning">⚠ 危険区域に入りました！</div>
+
+<script>
+
+// 地図
+const map = L.map('map').setView([35.6872027, 139.8208808], 15);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  noWrap: true
+}).addTo(map);
+
+// 危険区域（先に定義！）
+const dangerZones = [
+  { lat: 35.6872027, lon: 139.8208808, radius: 50 },
+  { lat: 35.710063, lon: 139.8107, radius: 80 }
+];
+
+// 描画
+dangerZones.forEach(zone => {
+  L.circle([zone.lat, zone.lon], {
+    radius: zone.radius,
+    color: 'red',
+    fillOpacity: 0.3
+  }).addTo(map);
+});
+
+// ユーザー
+let userMarker = L.marker([0,0]).addTo(map);
+const warningDiv = document.getElementById('warning');
+let insideZoneIndex = null;
+
+// スタート
+function startApp() {
 
   navigator.geolocation.watchPosition(pos => {
     const lat = pos.coords.latitude;
@@ -73,102 +95,29 @@
 
     console.log("入った:", newInsideIndex);
 
+    if (newInsideIndex !== null && newInsideIndex !== insideZoneIndex) {
+      warningDiv.style.display = 'block';
+      warningDiv.classList.add('blink');
 
-    
-    // 危険区域リスト
-    const dangerZones = [
-      { lat: 35.6872027, lon: 139.8208808, radius: 50 }, //科学技術高校 
-      { lat: 35.68165, lon: 139.8240, radius: 1 }, //
-      { lat: 35.65401, lon: 139.59914, radius: 120 },　//調布
-      { lat: 35.69494, lon: 139.85191, radius: 100 },  //チェリーガーデン 
-      { lat: 35.710063, lon: 139.8107, radius: 80 },       //スカイツリー 
-      { lat: 35.3502456, lon: 139.3845208, radius: 80 },
-    ];
-
-    // 危険区域を描画
-    dangerZones.forEach(zone => {
-      L.circle([zone.lat, zone.lon], {
-        radius: zone.radius,
-        color: 'red',
-        fillColor: '#f03',
-        fillOpacity: 0.3
-      }).addTo(map);
-    });
-
-    // 🚧 CSVから事故データを読み込んで危険区域を自動追加
-fetch("honhyo_2024.csv")
-  .then(response => response.text())
-  .then(text => {
-    const lines = text.split("\n").slice(1); // ヘッダー行を除く
-    lines.forEach(line => {
-      const cols = line.split(",");
-      const lat = parseFloat(cols[61]); // 2列目が緯度（例）
-      const lon = parseFloat(cols[62]); // 3列目が経度（例）
-
-      // 緯度経度が正しい数値なら地図に表示
-      if (!isNaN(lat) && !isNaN(lon)) {
-        L.circle([lat, lon], {
-          radius: 80,
-          color: "orange",
-          fillColor: "#ff6600",
-          fillOpacity: 0.4
-        }).addTo(map);
+      // 🔥 振動
+      if (navigator.vibrate) {
+        navigator.vibrate([300, 100, 300]);
       }
-    });
-  })
-  .catch(err => console.error("🚫 CSVの読み込みに失敗:", err));
+    }
 
-  fetch("honhyo_2024.csv")
-  .then(resp => resp.text())
-  .then(text => {
-    console.log(text.slice(0, 200)); // 先頭200文字だけ確認
+    if (newInsideIndex === null) {
+      warningDiv.style.display = 'none';
+      warningDiv.classList.remove('blink');
+    }
+
+    insideZoneIndex = newInsideIndex;
+
+  }, err => {
+    alert("位置情報エラー: " + err.message);
   });
 
-
-    // ユーザー位置マーカー
-    let userMarker = L.marker([0,0]).addTo(map);
-    const warningDiv = document.getElementById('warning');
-
-    // 現在どの危険区域にいるか
-    let insideZoneIndex = null;
-
-    navigator.geolocation.watchPosition(pos => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      userMarker.setLatLng([lat, lon]);
-      map.setView([lat, lon]);
-
-      let newInsideIndex = null;
-
-      // どの危険区域に入っているか確認
-      dangerZones.forEach((zone, index) => {
-        const dist = map.distance([lat, lon], [zone.lat, zone.lon]);
-        if (dist < zone.radius) {
-          newInsideIndex = index;
-        }
-      });
-
-      // 新しい区域に入ったら警告表示
-      if (newInsideIndex !== null && newInsideIndex !== insideZoneIndex) {
-        warningDiv.style.display = 'block';
-        warningDiv.classList.add('blink');
-      
-　//振動
-        if (navigator.vibrate) {
-    navigator.vibrate([300, 100, 300]);
-  }
 }
-                                        
-      // 出たら警告非表示
-      if (newInsideIndex === null) {
-        warningDiv.style.display = 'none';
-        warningDiv.classList.remove('blink');
-      }
 
-      insideZoneIndex = newInsideIndex;
-    }, err => {
-      alert("位置情報を取得できません: " + err.message);
-    });
-  </script>
+</script>
 </body>
 </html>
