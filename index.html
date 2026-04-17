@@ -96,6 +96,7 @@ function startApp() {
     console.log("入った:", newInsideIndex);
 
     if (newInsideIndex !== null && newInsideIndex !== insideZoneIndex) {
+      console.log("振動チェック");
       warningDiv.style.display = 'block';
       warningDiv.classList.add('blink');
 
