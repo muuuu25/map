@@ -137,29 +137,29 @@ function startApp() {
     // 入った瞬間
     if (isInside && !insideZone) {
 
-      warningDiv.style.display = "block";
-      warningDiv.classList.add("blink");
+  warningDiv.style.display = "block";
+  warningDiv.classList.add("blink");
 
-      console.log("振動する");
+  // 振動ループ開始
+  if (navigator.vibrate) {
+    vibrationInterval = setInterval(() => {
+      navigator.vibrate([300, 200]);
+    }, 500);
+  }
 
-      if (navigator.vibrate) {
-        navigator.vibrate([1000, 200, 1000]);
-      }
-
-    }
+}
 
     // 出たとき
     if (!isInside) {
-      warningDiv.style.display = "none";
-      warningDiv.classList.remove("blink");
-    }
+  warningDiv.style.display = "none";
+  warningDiv.classList.remove("blink");
 
-    insideZone = isInside;
-
-  }, err => {
-    alert("位置情報エラー: " + err.message);
-  });
-
+  // 振動停止
+  if (vibrationInterval) {
+    clearInterval(vibrationInterval);
+    navigator.vibrate(0);
+    vibrationInterval = null;
+  }
 }
 
 </script>
