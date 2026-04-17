@@ -144,6 +144,9 @@ function startApp() {
       warningDiv.style.display = "block";
       warningDiv.classList.add("blink");
 
+      const audio = new Audio("beep.mp3");
+audio.play();
+
       if (!vibrationInterval && navigator.vibrate) {
         vibrationInterval = setInterval(() => {
           navigator.vibrate([300, 200]);
