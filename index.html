@@ -8,31 +8,29 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
-    #map { height: 800px; }
+    #map { height: 700px; }
 
     #warning {
       display: none;
       position: fixed;
-      top: 10%;
+      top: 20%;
       left: 50%;
-      transform: translate(-50%, 10%);
+      transform: translate(-50%, -50%);
       background: red;
       color: white;
-      font-size: 36px;
-      font-weight: bold;
-      padding: 30px 60px;
-      border-radius: 20px;
-      text-align: center;
+      font-size: 30px;
+      padding: 20px 40px;
+      border-radius: 15px;
       z-index: 1000;
     }
 
     .blink {
-      animation: blinkAnimation 1s infinite;
+      animation: blink 1s infinite;
     }
 
-    @keyframes blinkAnimation {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
+    @keyframes blink {
+      0%,100% {opacity:1;}
+      50% {opacity:0;}
     }
   </style>
 </head>
@@ -40,8 +38,10 @@
 <body>
 
 <button onclick="startApp()">スタート</button>
+<button onclick="navigator.vibrate(1000)">テスト振動</button>
 
 <h2>自転車事故防止アプリ</h2>
+
 <div id="map"></div>
 <div id="warning">⚠ 危険区域に入りました！</div>
 
@@ -54,13 +54,16 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   noWrap: true
 }).addTo(map);
 
-// 危険区域（先に定義！）
+// 危険区域（手動）
 const dangerZones = [
   { lat: 35.6872027, lon: 139.8208808, radius: 50 },
   { lat: 35.710063, lon: 139.8107, radius: 80 }
 ];
 
-// 描画
+// CSV用
+const csvZones = [];
+
+// 手動ゾーン描画
 dangerZones.forEach(zone => {
   L.circle([zone.lat, zone.lon], {
     radius: zone.radius,
@@ -69,49 +72,89 @@ dangerZones.forEach(zone => {
   }).addTo(map);
 });
 
+// CSV読み込み
+fetch("honhyo_2024.csv")
+  .then(res => res.text())
+  .then(text => {
+    const lines = text.split("\n").slice(1);
+
+    lines.forEach(line => {
+      const cols = line.split(",");
+      const lat = parseFloat(cols[61]);
+      const lon = parseFloat(cols[62]);
+
+      if (!isNaN(lat) && !isNaN(lon)) {
+
+        // 地図表示
+        L.circle([lat, lon], {
+          radius: 80,
+          color: "orange",
+          fillOpacity: 0.4
+        }).addTo(map);
+
+        // 判定用に保存
+        csvZones.push({ lat: lat, lon: lon, radius: 80 });
+      }
+    });
+
+    console.log("CSV読み込み完了:", csvZones.length);
+
+  });
+
 // ユーザー
 let userMarker = L.marker([0,0]).addTo(map);
-const warningDiv = document.getElementById('warning');
-let insideZoneIndex = null;
+const warningDiv = document.getElementById("warning");
+
+let insideZone = false;
 
 // スタート
 function startApp() {
 
   navigator.geolocation.watchPosition(pos => {
+
     const lat = pos.coords.latitude;
     const lon = pos.coords.longitude;
 
     userMarker.setLatLng([lat, lon]);
     map.setView([lat, lon]);
 
-    let newInsideIndex = null;
+    let isInside = false;
 
-    dangerZones.forEach((zone, index) => {
-      const dist = map.distance([lat, lon], [zone.lat, zone.lon]);
-      if (dist < zone.radius) {
-        newInsideIndex = index;
-      }
+    // 手動ゾーン判定
+    dangerZones.forEach(zone => {
+      const d = map.distance([lat, lon], [zone.lat, zone.lon]);
+      if (d < zone.radius) isInside = true;
     });
 
-    console.log("入った:", newInsideIndex);
+    // CSVゾーン判定
+    csvZones.forEach(zone => {
+      const d = map.distance([lat, lon], [zone.lat, zone.lon]);
+      if (d < zone.radius) isInside = true;
+    });
 
-    if (newInsideIndex !== null && newInsideIndex !== insideZoneIndex) {
-      console.log("振動チェック");
-      warningDiv.style.display = 'block';
-      warningDiv.classList.add('blink');
+    console.log("危険:", isInside);
 
-      // 🔥 振動
+    // 入った瞬間
+    if (isInside && !insideZone) {
+
+      warningDiv.style.display = "block";
+      warningDiv.classList.add("blink");
+
+      console.log("振動する");
+
       if (navigator.vibrate) {
-        navigator.vibrate([300, 100, 300]);
+        navigator.vibrate([500, 200, 500]);
       }
+
     }
 
-    if (newInsideIndex === null) {
-      warningDiv.style.display = 'none';
-      warningDiv.classList.remove('blink');
+    // 出たとき
+    if (!isInside) {
+      warningDiv.style.display = "none";
+      warningDiv.classList.remove("blink");
     }
 
-    insideZoneIndex = newInsideIndex;
+    insideZone = isInside;
 
   }, err => {
     alert("位置情報エラー: " + err.message);
