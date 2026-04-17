@@ -135,6 +135,8 @@ function startApp() {
     console.log("危険:", isInside);
 
     // 入った瞬間
+    let vibrationInterval = null;
+    
     if (isInside && !insideZone) {
 
   warningDiv.style.display = "block";
