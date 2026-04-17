@@ -163,7 +163,10 @@ function startApp() {
     vibrationInterval = null;
   }
 }
-
+insideZone = isInside;
+    }, err => {
+  alert("位置情報エラー: " + err.message);
+});
 </script>
 </body>
 </html>
