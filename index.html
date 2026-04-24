@@ -88,27 +88,24 @@ dangerZones.forEach(zone => {
 fetch("honhyo_2024.csv")
   .then(res => res.text())
   .then(text => {
-    const lines = text.split("\n").slice(1);
 
-    lines.forEach(line => {
-      const cols = line.split(",");
-      const lat = parseFloat(cols[1]);
-      const lon = parseFloat(cols[2]);
+    const lines = text.split("\n");
 
-      if (!isNaN(lat) && !isNaN(lon)) {
+    // ① 1行目（ヘッダー）確認
+    console.log("ヘッダー ↓");
+    console.log(lines[0]);
 
-        L.circle([lat, lon], {
-          radius: 80,
-          color: "orange",
-          fillOpacity: 0.4
-        }).addTo(map);
+    // ② 2行目（実データ）確認
+    console.log("データ例 ↓");
+    console.log(lines[1]);
 
-        csvZones.push({ lat: lat, lon: lon, radius: 80 });
-      }
-    });
+    // ③ 分割して中身確認
+    const cols = lines[1].split(",");
+    console.log("分割結果 ↓");
+    console.log(cols);
 
-    console.log("CSV読み込み完了:", csvZones.length);
-  });
+  })
+  .catch(err => console.error("CSVエラー:", err));
 
 // ユーザー
 let userMarker = L.marker([0,0]).addTo(map);
