@@ -92,8 +92,8 @@ fetch("honhyo_2024.csv")
 
     lines.forEach(line => {
       const cols = line.split(",");
-      const lat = parseFloat(cols[61]);
-      const lon = parseFloat(cols[62]);
+      const lat = parseFloat(cols[1]);
+      const lon = parseFloat(cols[2]);
 
       if (!isNaN(lat) && !isNaN(lon)) {
 
