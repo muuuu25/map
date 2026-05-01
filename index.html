@@ -85,7 +85,7 @@ dangerZones.forEach(zone => {
 });
 
 // 🔥 CSV読み込み
-fetch("honhyo_2024.csv")
+fetch("/map/honhyo_2024.csv")
   .then(res => res.text())
   .then(text => {
     const lines = text.split("\n").slice(1);
