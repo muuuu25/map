@@ -77,6 +77,38 @@ dangerZones.forEach(zone => {
     fillOpacity:0.3
   }).addTo(map);
 });
+
+  fetch("ziko.csv")
+  .then(res => res.text())
+  .then(text => {
+
+    const lines = text.split("\n").slice(1);
+
+    lines.forEach(line => {
+
+      const cols = line.split(",");
+
+      const lat = parseFloat(cols[13]);
+      const lon = parseFloat(cols[14]);
+
+      if (!isNaN(lat) && !isNaN(lon)) {
+
+        L.circle([lat, lon], {
+          radius: 80,
+          color: "orange",
+          fillOpacity: 0.4
+        }).addTo(map);
+
+      }
+
+    });
+
+    console.log("CSV読み込み成功");
+
+  })
+  .catch(err => {
+    console.error("CSVエラー", err);
+  });
 // ユーザー
 let userMarker = L.marker([0,0]).addTo(map);
 const warningDiv =
