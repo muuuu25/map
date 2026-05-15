@@ -3,161 +3,327 @@
 <head>
   <meta charset="utf-8" />
   <title>自転車事故防止アプリ</title>
-  <link rel="stylesheet"
-  href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
   <style>
-    #map{
-      height:700px;
+    #map {
+      height: 800px;
     }
-    #warning{
-      display:none;
-      position:fixed;
-      top:20%;
-      left:50%;
-      transform:translate(-50%,-50%);
-      background:red;
-      color:white;
-      font-size:30px;
-      padding:20px 40px;
-      border-radius:15px;
-      z-index:1000;
+
+    #warning {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: red;
+      color: white;
+      font-size: 35px;
+      font-weight: bold;
+      padding: 30px 60px;
+      border-radius: 20px;
+      z-index: 9999;
     }
-    .blink{
-      animation:blink 1s infinite;
+
+    .blink {
+      animation: blink 1s infinite;
     }
-    @keyframes blink{
-      0%,100%{opacity:1;}
-      50%{opacity:0;}
+
+    @keyframes blink {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0; }
     }
-    button{
-      font-size:30px;
-      padding:20px 40px;
+
+    #startBtn {
+      font-size: 40px;
+      padding: 30px 60px;
+      border: none;
+      border-radius: 20px;
+      background: green;
+      color: white;
+      margin-bottom: 20px;
     }
   </style>
 </head>
+
 <body>
-<button onclick="startApp()">スタート</button>
+
+<button id="startBtn" onclick="startApp()">
+  スタート
+</button>
+
+<button onclick="navigator.vibrate(1000)">
+  テスト振動
+</button>
+
 <h2>自転車事故防止アプリ</h2>
+
 <div id="map"></div>
+
 <div id="warning">
-⚠ 危険区域に入りました
+  危険区域に入りました
 </div>
+
 <script>
-// 地図表示
-const map = L.map('map').setView(
-  [35.6872027,139.8208808],15
-);
+
+// =========================
+// 振動用
+// =========================
+
+let vibrationInterval = null;
+
+
+// =========================
+// 地図
+// =========================
+
+const map = L.map('map').setView([35.6872027, 139.8208808], 15);
+
 L.tileLayer(
-'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-{
-  attribution:'© OpenStreetMap contributors'
-}
-).addTo(map);
-// 危険区域
-const dangerZones = [
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {
-    lat:35.6872027,
-    lon:139.8208808,
-    radius:80
-  },
-  {
-    lat:35.64517194,
-    lon:139.81642,
-    radius:80
+    noWrap: true,
+    attribution: '© OpenStreetMap contributors'
   }
+).addTo(map);
+
+
+// =========================
+// 手動危険区域
+// =========================
+
+const dangerZones = [
+
+  {
+    lat: 35.6872027,
+    lon: 139.8208808,
+    radius: 80
+  },
+
+  {
+    lat: 35.710063,
+    lon: 139.8107,
+    radius: 100
+  }
+
 ];
-// 円を表示
+
+
+// =========================
+// 手動ゾーン描画
+// =========================
+
 dangerZones.forEach(zone => {
-  L.circle([zone.lat,zone.lon],{
-    radius:zone.radius,
-    color:'red',
-    fillColor:'#f03',
-    fillOpacity:0.3
+
+  L.circle([zone.lat, zone.lon], {
+
+    radius: zone.radius,
+    color: "red",
+    fillColor: "#ff0000",
+    fillOpacity: 0.3
+
   }).addTo(map);
+
 });
 
-  fetch("ziko.csv")
+
+// =========================
+// CSV事故データ
+// =========================
+
+const csvZones = [];
+
+fetch("ziko.csv")
+
   .then(res => res.text())
+
   .then(text => {
 
     const lines = text.split("\n").slice(1);
 
     lines.forEach(line => {
-      console.log(cols);
 
       const cols = line.split(",");
 
+      // 緯度経度
       const lat = parseFloat(cols[13]);
       const lon = parseFloat(cols[14]);
 
+      // 数値チェック
       if (!isNaN(lat) && !isNaN(lon)) {
 
+        // 地図表示
         L.circle([lat, lon], {
+
           radius: 80,
           color: "orange",
+          fillColor: "#ff6600",
           fillOpacity: 0.4
+
         }).addTo(map);
+
+        // 判定用保存
+        csvZones.push({
+
+          lat: lat,
+          lon: lon,
+          radius: 80
+
+        });
 
       }
 
     });
 
     console.log("CSV読み込み成功");
+    console.log(csvZones.length);
 
   })
+
   .catch(err => {
-    console.error("CSVエラー", err);
+
+    console.error("CSVエラー:", err);
+
   });
+
+
+// =========================
 // ユーザー
+// =========================
+
 let userMarker = L.marker([0,0]).addTo(map);
+
 const warningDiv =
-document.getElementById("warning");
-let vibrationInterval = null;
+  document.getElementById("warning");
+
+
+// =========================
 // スタート
-function startApp(){
-navigator.geolocation.watchPosition(pos => {
-  const lat = pos.coords.latitude;
-  const lon = pos.coords.longitude;
-  userMarker.setLatLng([lat,lon]);
-  map.setView([lat,lon]);
-  let isInside = false;
-  dangerZones.forEach(zone => {
-    const d = map.distance(
-      [lat,lon],
-      [zone.lat,zone.lon]
-    );
-    if(d < zone.radius){
-      isInside = true;
+// =========================
+
+function startApp() {
+
+  document.getElementById("startBtn").style.display = "none";
+
+  navigator.geolocation.watchPosition(
+
+    pos => {
+
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+
+      userMarker.setLatLng([lat, lon]);
+
+      map.setView([lat, lon]);
+
+      let isInside = false;
+
+
+      // =========================
+      // 手動ゾーン判定
+      // =========================
+
+      dangerZones.forEach(zone => {
+
+        const d = map.distance(
+          [lat, lon],
+          [zone.lat, zone.lon]
+        );
+
+        if (d < zone.radius) {
+
+          isInside = true;
+
+        }
+
+      });
+
+
+      // =========================
+      // CSVゾーン判定
+      // =========================
+
+      csvZones.forEach(zone => {
+
+        const d = map.distance(
+          [lat, lon],
+          [zone.lat, zone.lon]
+        );
+
+        if (d < zone.radius) {
+
+          isInside = true;
+
+        }
+
+      });
+
+
+      // =========================
+      // 危険区域内
+      // =========================
+
+      if (isInside) {
+
+        warningDiv.style.display = "block";
+
+        warningDiv.classList.add("blink");
+
+
+        // 振動
+        if (!vibrationInterval &&
+            navigator.vibrate) {
+
+          vibrationInterval = setInterval(() => {
+
+            navigator.vibrate([300, 200]);
+
+          }, 500);
+
+        }
+
+      }
+
+
+      // =========================
+      // 危険区域外
+      // =========================
+
+      else {
+
+        warningDiv.style.display = "none";
+
+        warningDiv.classList.remove("blink");
+
+        if (vibrationInterval) {
+
+          clearInterval(vibrationInterval);
+
+          navigator.vibrate(0);
+
+          vibrationInterval = null;
+
+        }
+
+      }
+
+    },
+
+    err => {
+
+      alert(
+        "位置情報エラー: " +
+        err.message
+      );
+
     }
-  });
-  // 入った
-  if(isInside){
-    warningDiv.style.display = "block";
-    warningDiv.classList.add("blink");
-    if(!vibrationInterval &&
-       navigator.vibrate){
-      vibrationInterval = setInterval(() => {
-        navigator.vibrate([300,200]);
-      },500)
-    }
-  }
-  // 出た
-  else{
-    warningDiv.style.display = "none";
-    warningDiv.classList.remove("blink");
-    if(vibrationInterval){
-      clearInterval(vibrationInterval);
-      navigator.vibrate(0);
-      vibrationInterval = null;
-    }
-  }
-},
-err => {
-  alert("位置情報エラー:" + err.message);
-});
+
+  );
+
 }
+
 </script>
 
 </body>
