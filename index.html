@@ -3,17 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <title>自転車事故防止アプリ</title>
-
   <link rel="stylesheet"
   href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
   <style>
     #map{
       height:700px;
     }
-
     #warning{
       display:none;
       position:fixed;
@@ -27,52 +24,39 @@
       border-radius:15px;
       z-index:1000;
     }
-
     .blink{
       animation:blink 1s infinite;
     }
-
     @keyframes blink{
       0%,100%{opacity:1;}
       50%{opacity:0;}
     }
-
     button{
       font-size:30px;
       padding:20px 40px;
     }
   </style>
 </head>
-
 <body>
-
 <button onclick="startApp()">スタート</button>
-
 <h2>自転車事故防止アプリ</h2>
-
 <div id="map"></div>
-
 <div id="warning">
-⚠ 危険区域に入りました！
+⚠ 危険区域に入りました
 </div>
-
 <script>
-
 // 地図表示
 const map = L.map('map').setView(
   [35.6872027,139.8208808],15
 );
-
 L.tileLayer(
 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 {
   attribution:'© OpenStreetMap contributors'
 }
 ).addTo(map);
-
 // 危険区域
 const dangerZones = [
-
   {
     lat:35.6872027,
     lon:139.8208808,
@@ -83,108 +67,64 @@ const dangerZones = [
     lon:139.81642,
     radius:80
   }
-
 ];
-
 // 円を表示
 dangerZones.forEach(zone => {
-
   L.circle([zone.lat,zone.lon],{
-
     radius:zone.radius,
     color:'red',
     fillColor:'#f03',
     fillOpacity:0.3
-
   }).addTo(map);
-
 });
-
 // ユーザー
 let userMarker = L.marker([0,0]).addTo(map);
-
 const warningDiv =
 document.getElementById("warning");
-
 let vibrationInterval = null;
-
 // スタート
 function startApp(){
-
 navigator.geolocation.watchPosition(pos => {
-
   const lat = pos.coords.latitude;
   const lon = pos.coords.longitude;
-
   userMarker.setLatLng([lat,lon]);
-
   map.setView([lat,lon]);
-
   let isInside = false;
-
   dangerZones.forEach(zone => {
-
     const d = map.distance(
       [lat,lon],
       [zone.lat,zone.lon]
     );
-
     if(d < zone.radius){
-
       isInside = true;
-
     }
-
   });
-
   // 入った
   if(isInside){
-
     warningDiv.style.display = "block";
-
     warningDiv.classList.add("blink");
-
     if(!vibrationInterval &&
        navigator.vibrate){
-
       vibrationInterval = setInterval(() => {
-
         navigator.vibrate([300,200]);
-
-      },500);
-
+      },500)
     }
-
   }
-
   // 出た
   else{
-
     warningDiv.style.display = "none";
-
     warningDiv.classList.remove("blink");
-
     if(vibrationInterval){
-
       clearInterval(vibrationInterval);
-
       navigator.vibrate(0);
-
       vibrationInterval = null;
-
     }
-
   }
-
 },
 err => {
-
   alert("位置情報エラー:" + err.message);
-
 });
-
 }
-
 </script>
 
 </body>
