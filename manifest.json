@@ -1,6 +1,6 @@
 {
 "name":"自転車事故防止アプリ",
-"short_name":"事故防止",
+"short_name":"事故防止アプリ",
 "display":"standalone",
 "start_url":"./",
 "background_color":"#ffffff",
