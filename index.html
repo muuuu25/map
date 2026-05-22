@@ -8,6 +8,7 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
+
 body{
 margin:0;
 font-family:sans-serif;
@@ -24,8 +25,8 @@ top:20px;
 left:50%;
 transform:translateX(-50%);
 z-index:9999;
-font-size:28px;
-padding:18px 40px;
+font-size:30px;
+padding:20px 50px;
 border:none;
 border-radius:15px;
 background:black;
@@ -55,20 +56,29 @@ animation:blink 1s infinite;
 0%,100%{opacity:1;}
 50%{opacity:0;}
 }
+
 </style>
 </head>
 
 <body>
 
-<button id="startBtn" onclick="startApp()">START</button>
+<button id="startBtn" onclick="startApp()">
+START
+</button>
 
-<div id="warning">⚠ 危険区域</div>
+<div id="warning">
+⚠ 危険区域
+</div>
 
 <div id="map"></div>
 
 <script>
 
-const map=L.map('map').setView([35.6872027,139.8208808],15);
+// 地図
+const map=L.map('map').setView(
+[35.6872027,139.8208808],
+15
+);
 
 L.tileLayer(
 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -77,19 +87,26 @@ attribution:'© OpenStreetMap'
 }
 ).addTo(map);
 
+
+// 手動危険区域
 const dangerZones=[
+
 {
 lat:35.6872027,
 lon:139.8208808,
 radius:100
 },
+
 {
 lat:35.710063,
 lon:139.8107,
 radius:120
 }
+
 ];
 
+
+// 手動円表示
 dangerZones.forEach(zone=>{
 
 L.circle(
@@ -104,6 +121,8 @@ fillOpacity:0.3
 
 });
 
+
+// CSVデータ
 const csvZones=[];
 
 fetch("ziko.csv")
@@ -118,15 +137,15 @@ lines.forEach(line=>{
 
 const cols=line.split(",");
 
-const lat=parseFloat(cols[13]);
-const lon=parseFloat(cols[14]);
+// 🔥 ここ重要
+const lat=parseFloat(cols[11])/10000000;
+const lon=parseFloat(cols[12])/10000000;
 
 console.log(lat,lon);
 
 if(!isNaN(lat)&&!isNaN(lon)){
 
-map.setView([lat,lon],15);
-
+// CSV地点表示
 L.circle(
 [lat,lon],
 {
@@ -137,6 +156,7 @@ fillOpacity:0.4
 }
 ).addTo(map);
 
+// 判定用保存
 csvZones.push({
 lat:lat,
 lon:lon,
@@ -147,7 +167,8 @@ radius:80
 
 });
 
-console.log("CSV成功");
+console.log("CSV読み込み成功");
+console.log(csvZones.length);
 
 })
 
@@ -157,15 +178,22 @@ console.error("CSVエラー:",err);
 
 });
 
+
+// ユーザー
 let userMarker=L.marker([0,0]).addTo(map);
 
 let vibrationInterval=null;
 
-const warningDiv=document.getElementById("warning");
+const warningDiv=
+document.getElementById("warning");
 
+
+// スタート
 function startApp(){
 
-document.getElementById("startBtn").style.display="none";
+document.getElementById(
+"startBtn"
+).style.display="none";
 
 navigator.geolocation.watchPosition(
 
@@ -180,6 +208,8 @@ map.setView([lat,lon]);
 
 let isInside=false;
 
+
+// 手動判定
 dangerZones.forEach(zone=>{
 
 const d=map.distance(
@@ -188,11 +218,15 @@ const d=map.distance(
 );
 
 if(d<zone.radius){
+
 isInside=true;
+
 }
 
 });
 
+
+// CSV判定
 csvZones.forEach(zone=>{
 
 const d=map.distance(
@@ -201,22 +235,36 @@ const d=map.distance(
 );
 
 if(d<zone.radius){
+
 isInside=true;
+
 }
 
 });
 
+
+// 危険区域内
 if(isInside){
 
 warningDiv.style.display="block";
 
-warningDiv.classList.add("blink");
+warningDiv.classList.add(
+"blink"
+);
 
-if(!vibrationInterval&&navigator.vibrate){
 
-vibrationInterval=setInterval(()=>{
+// 振動
+if(
+!vibrationInterval &&
+navigator.vibrate
+){
 
-navigator.vibrate([300,200]);
+vibrationInterval=
+setInterval(()=>{
+
+navigator.vibrate(
+[300,200]
+);
 
 },500);
 
@@ -224,15 +272,21 @@ navigator.vibrate([300,200]);
 
 }
 
+
+// 危険区域外
 else{
 
 warningDiv.style.display="none";
 
-warningDiv.classList.remove("blink");
+warningDiv.classList.remove(
+"blink"
+);
 
 if(vibrationInterval){
 
-clearInterval(vibrationInterval);
+clearInterval(
+vibrationInterval
+);
 
 navigator.vibrate(0);
 
@@ -246,7 +300,9 @@ vibrationInterval=null;
 
 err=>{
 
-alert("位置情報エラー:"+err.message);
+alert(
+"位置情報エラー:"+err.message
+);
 
 }
 
