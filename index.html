@@ -131,13 +131,9 @@ let vibrationInterval=null;
 const warningDiv=
 document.getElementById("warning");
 
-let wasInside=false;
-
 
 // スタート
 function startApp(){
-
-Notification.requestPermission();
 
 document.getElementById(
 "startBtn"
@@ -184,20 +180,6 @@ warningDiv.classList.add(
 );
 
 
-// 通知
-if(!wasInside){
-
-if(Notification.permission==="granted"){
-
-new Notification(
-"⚠ 危険区域です"
-);
-
-}
-
-}
-
-
 // 振動
 if(
 !vibrationInterval &&
@@ -240,8 +222,6 @@ vibrationInterval=null;
 }
 
 }
-
-wasInside=isInside;
 
 },
 
