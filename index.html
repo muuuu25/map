@@ -78,7 +78,7 @@ START
 
 const map=L.map('map').setView(
 [35.6872027,139.8208808],
-15
+16
 );
 
 L.tileLayer(
@@ -89,25 +89,25 @@ attribution:'© OpenStreetMap'
 ).addTo(map);
 
 
-// 手動危険区域
+// 危険区域
 const dangerZones=[
 
 {
 lat:35.6872027,
 lon:139.8208808,
-radius:100
+radius:150
 },
 
 {
 lat:35.710063,
 lon:139.8107,
-radius:120
+radius:150
 }
 
 ];
 
 
-// 手動危険区域表示
+// 円表示
 dangerZones.forEach(zone=>{
 
 L.circle(
@@ -119,57 +119,6 @@ fillColor:"#ff0000",
 fillOpacity:0.3
 }
 ).addTo(map);
-
-});
-
-
-// CSV危険区域
-const csvZones=[];
-
-fetch("ziko.csv")
-
-.then(res=>res.text())
-
-.then(text=>{
-
-const lines=text.split("\n").slice(1);
-
-lines.forEach(line=>{
-
-const cols=line.split(",");
-
-const lat=parseFloat(cols[13]);
-const lon=parseFloat(cols[14]);
-
-if(!isNaN(lat)&&!isNaN(lon)){
-
-L.circle(
-[lat,lon],
-{
-radius:80,
-color:"orange",
-fillColor:"#ff6600",
-fillOpacity:0.4
-}
-).addTo(map);
-
-csvZones.push({
-lat:lat,
-lon:lon,
-radius:80
-});
-
-}
-
-});
-
-console.log("CSV読み込み成功");
-
-})
-
-.catch(err=>{
-
-console.error("CSVエラー:",err);
 
 });
 
@@ -208,25 +157,8 @@ map.setView([lat,lon]);
 let isInside=false;
 
 
-// 手動危険区域判定
+// 危険区域判定
 dangerZones.forEach(zone=>{
-
-const d=map.distance(
-[lat,lon],
-[zone.lat,zone.lon]
-);
-
-if(d<zone.radius){
-
-isInside=true;
-
-}
-
-});
-
-
-// CSV危険区域判定
-csvZones.forEach(zone=>{
 
 const d=map.distance(
 [lat,lon],
@@ -252,7 +184,7 @@ warningDiv.classList.add(
 );
 
 
-// 通知（入った瞬間だけ）
+// 通知
 if(!wasInside){
 
 if(Notification.permission==="granted"){
