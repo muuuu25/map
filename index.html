@@ -95,23 +95,27 @@ Papa.parse("https://あなたのGitHub名.github.io/accident-map/accidents.csv",
 
     const data = results.data;
 
-    dangerZones = data.map(row => {
+    dangerZones = data
+      .filter(row => row["緯度"] && row["経度"])   // 空行を除外
+      .map(row => {
 
-      const lat = parseFloat(row["緯度"]);
-      const lon = parseFloat(row["経度"]);
+        const lat = parseFloat(row["緯度"]);
+        const lon = parseFloat(row["経度"]);
 
-      const dead = parseInt(row["死者数"]);
-      const injured = parseInt(row["負傷者数"]);
+        const dead = parseInt(row["死者数"] || 0);
+        const injured = parseInt(row["負傷者数"] || 0);
 
-      // 危険度に応じて半径を変える
-      const radius = (injured * 20) + (dead * 100);
+        // 危険度に応じて半径を変える
+        const radius = (injured * 20) + (dead * 100);
 
-      return {
-        lat: lat,
-        lon: lon,
-        radius: radius
-      };
-    });
+        return {
+          lat: lat,
+          lon: lon,
+          radius: radius
+        };
+      });
+
+    console.log("読み込んだ危険区域:", dangerZones);
 
     // 地図に描画
     dangerZones.forEach(zone => {
