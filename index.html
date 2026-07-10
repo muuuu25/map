@@ -88,7 +88,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // ----------------------------
 let dangerZones = [];
 
-Papa.parse("https://github.com/muuuu25/map/blob/main/converted-ziko.csv", {
+Papa.parse("https://raw.githubusercontent.com/muuuu25/map/main/converted-ziko.csv
+", {
   download: true,
   header: true,
   complete: function(results) {
