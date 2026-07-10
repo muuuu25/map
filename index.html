@@ -88,8 +88,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // ----------------------------
 let dangerZones = [];
 
-Papa.parse("https://raw.githubusercontent.com/muuuu25/map/main/converted-ziko.csv
-", {
+Papa.parse("https://raw.githubusercontent.com/muuuu25/map/main/converted-ziko.csv", {
   download: true,
   header: true,
   complete: function(results) {
@@ -123,8 +122,8 @@ Papa.parse("https://raw.githubusercontent.com/muuuu25/map/main/converted-ziko.cs
       L.circle([zone.lat, zone.lon], {
         radius: zone.radius,
         color: "red",
-        fillColor: "#ff0000",
-        fillOpacity: 0.3
+        fillColor:"#ff0000",
+        fillOpacity:0.3
       }).addTo(map);
     });
 
