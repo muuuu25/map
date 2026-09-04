@@ -67,7 +67,7 @@ body{
 
 <button id="startBtn" onclick="startApp()">START</button>
 
-<div id="warning">⚠ 危険区域</div>
+<div id="warning">危険区域</div>
 
 <div id="map"></div>
 
@@ -88,6 +88,10 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // ----------------------------
 let dangerZones = [];
 
+  const dangerZones = [
+  { lat: 35.6872027, lon: 139.8208808, radius: 100 }
+];
+  
 Papa.parse("https://raw.githubusercontent.com/muuuu25/map/main/converted-ziko.csv", {
   download: true,
   header: true,
