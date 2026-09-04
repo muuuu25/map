@@ -114,6 +114,12 @@ Papa.parse("https://raw.githubusercontent.com/muuuu25/map/main/converted-ziko.cs
           radius: radius
         };
       });
+    // 科学技術高校を危険区域として追加
+dangerZones.push({
+  lat: 35.6872027,
+  lon: 139.8208808,
+  radius: 100
+});
 
     console.log("読み込んだ危険区域:", dangerZones);
 
