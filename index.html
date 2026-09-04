@@ -87,10 +87,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // CSV から危険区域を読み込む
 // ----------------------------
 let dangerZones = [];
-
-  const dangerZones = [
-  { lat: 35.6872027, lon: 139.8208808, radius: 100 }
-];
   
 Papa.parse("https://raw.githubusercontent.com/muuuu25/map/main/converted-ziko.csv", {
   download: true,
